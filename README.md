@@ -163,4 +163,11 @@ The user "employee" on the "threat-hunt-lab" device initiated and completed the 
 
 TOR usage was confirmed on the endpoint `threat-hunt-lab` by the user `employee`. The device was isolated, and the user's direct manager was notified.
 
+## Microsoft Sentinel Monitoring Dashboard: Directory Login Failures
+
+### 📌 Overview
+To maintain continuous oversight of district access compliance, I deployed a customized Microsoft Sentinel Workbook dashboard titled **Directory Login Failures**. Because educational and enterprise networks are frequent targets for automated brute-force attacks originating from international IP space, this dashboard visually maps out failed authentication attempts geographically in real-time. This allows security analysts to immediately flag unauthorized access vectors and "impossible travel" scenarios outside regional boundaries.
+
+<img width="959" height="566" alt="Screenshot 2026-05-26 at 6 42 09 PM" src="https://github.com/user-attachments/assets/544c5ebe-2cae-4a65-8847-0fd4d8a095ae" />
+
 ---
