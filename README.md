@@ -17,9 +17,9 @@
 - Tor Browser
 
 ## Scenario
-The Technology Department identified unauthorized, encrypted web traffic anomalies bypassing standard network content filters. Internal investigations indicated that a student utilized a portable TOR browser on a high school computer lab endpoint to circumvent district network security controls and access restricted domains. 
+In my day-to-day work at the high school, I constantly see students trying to get around our content filters to access blocked sites. This project started as a fun way to build out the detection and analysis skills I need to actually catch this activity and keep our network secure. 
 
-The goal of this hunt is to detect unauthorized TOR installation and execution across the enterprise fleet, analyze the security incident lifecycle, and ensure regulatory compliance with student data safety policies. If TOR deployment is confirmed, findings must be immediately escalated to the IT Director and Building Administration.
+I noticed a student account (`student.user`) was using a portable TOR browser on a high school computer lab endpoint to bypass our filters and hit restricted domains. The goal of this hunt is to detect unauthorized TOR installation and execution across our fleet, map out the incident, and ensure we're following student data safety policies. If I confirm TOR is being used, the plan is to escalate the findings to the IT Director and building admin for follow-up.
 
 ### High-Level TOR-Related IoC Discovery Plan
 
@@ -67,117 +67,13 @@ DeviceProcessEvents
 
 ---
 
-### 3. Searched the `DeviceProcessEvents` Table for TOR Browser Execution
+### 2. Searched the `DeviceProcessEvents` Table
+Searched for any `ProcessCommandLine` that contained the string "tor-browser-windows-x86_64-portable-14.0.1.exe". The logs show that at `2024-11-08T22:16:47.4484567Z`, the student account (`student.user`) on the lab workstation (`HS-LAB-PC-04`) executed the installer, triggering a silent installation.
 
-Searched for any indication that user "employee" actually opened the TOR browser. There was evidence that the student opened the browser at 2024-11-08T22:17:21.6357935Z. Subsequent process activity confirmed firefox.exe and tor.exe spawning, verifying successful execution..
-
-**Query used to locate events:**
-
+**Query used to locate event:**
 ```kql
-DeviceProcessEvents  
-| where DeviceName == "threat-hunt-lab"  
-| where FileName has_any ("tor.exe", "firefox.exe", "tor-browser.exe")  
-| project Timestamp, DeviceName, AccountName, ActionType, FileName, FolderPath, SHA256, ProcessCommandLine  
-| order by Timestamp desc
-```
-<img width="1212" alt="image" src="https://github.com/user-attachments/assets/b13707ae-8c2d-4081-a381-2b521d3a0d8f">
-
----
-
-### 4. Searched the `DeviceNetworkEvents` Table for TOR Network Connections
-
-Searched for any indication the TOR browser was used to establish a connection using any of the known TOR ports. At `2024-11-08T22:18:01.1246358Z`, the student account (student.user) successfully established a connection from the workstation (HS-LAB-PC-04) to remote IP 176.198.159.33 via port 9001, confirming active TOR network connection to the remote IP address `176.198.159.33` on port `9001`. The connection was initiated by the process `tor.exe`, located in the folder `c:\users\employee\desktop\tor browser\browser\torbrowser\tor\tor.exe`. There were a couple of other connections to sites over port `443`.
-
-**Query used to locate events:**
-
-```kql
-DeviceNetworkEvents
+DeviceProcessEvents
 | where DeviceName == "HS-LAB-PC-04"
-| where InitiatingProcessAccountName == "student.user"
-| where InitiatingProcessFileName in ("tor.exe", "firefox.exe")
-| where RemotePort in ("9001", "9030", "9040", "9050", "9051", "9150", "80", "443")
-| project Timestamp, DeviceName, InitiatingProcessAccountName, ActionType, RemoteIP, RemotePort, RemoteUrl, InitiatingProcessFileName, InitiatingProcessFolderPath
-| order by Timestamp desc
-```
-<img width="1212" alt="image" src="https://github.com/user-attachments/assets/87a02b5b-7d12-4f53-9255-f5e750d0e3cb">
-
----
-
-## Chronological Event Timeline 
-
-### 1. File Download - TOR Installer
-
-* **Timestamp:** `2024-11-08T22:14:48.6065231Z`
-* **Event:** The student account (`student.user`) downloaded `tor-browser-windows-x86_64-portable-14.0.1.exe` to the Downloads folder.
-* **Action:** File download detected.
-* **File Path:** `C:\Users\student.user\Downloads\tor-browser-windows-x86_64-portable-14.0.1.exe`
-
-### 2. Process Execution - TOR Browser Installation
-
-* **Timestamp:** `2024-11-08T22:16:47.4484567Z`
-* **Event:** The student account (`student.user`) executed the installer in silent mode, initiating a background installation of the TOR Browser.
-* **Action:** Process creation detected.
-* **Command:** `tor-browser-windows-x86_64-portable-14.0.1.exe /S`
-* **File Path:** `C:\Users\student.user\Downloads\tor-browser-windows-x86_64-portable-14.0.1.exe`
-
-### 3. Process Execution - TOR Browser Launch
-
-* **Timestamp:** `2024-11-08T22:17:21.6357935Z`
-* **Event:** The student account (`student.user`) opened the TOR browser. Subsequent processes, such as `firefox.exe` and `tor.exe`, were created, providing evidence of successful execution.
-* **Action:** Process creation of TOR browser-related executables detected.
-* **File Path:** `C:\Users\student.user\Desktop\Tor Browser\Browser\TorBrowser\Tor\tor.exe`
-
-### 4. Network Connection - TOR Network
-
-* **Timestamp:** `2024-11-08T22:18:01.1246358Z`
-* **Event:** A network connection to IP `176.198.159.33` on port `9001` was established by the student account (`student.user`) using `tor.exe`, confirming an active TOR network connection.
-* **Action:** Connection success.
-* **Process:** `tor.exe`
-* **File Path:** `C:\Users\student.user\Desktop\Tor Browser\Browser\TorBrowser\Tor\tor.exe`
-
-### 5. Additional Network Connections - TOR Browser Activity
-
-* **Timestamps:**
-    * `2024-11-08T22:18:08Z` - Connected to `194.164.169.85` on port `443`.
-    * `2024-11-08T22:18:16Z` - Local connection to `127.0.0.1` on port `9150`.
-* **Event:** Additional TOR network connections were established, confirming ongoing activity by the student account (`student.user`) through the TOR browser.
-
-### 6. File Creation - TOR Shopping List
-
-* **Timestamp:** `2024-11-08T22:27:19.7259964Z`
-* **Event:** The student account (`student.user`) created a file named `unblocked-games-list.txt` on the desktop, documenting restricted sites accessed during the TOR session.
-* **Action:** File creation detected.
-* **File Path:** `C:\Users\student.user\Desktop\unblocked-games-list.txt`
-
----
-
-## Summary
-
-The user "employee" on the "threat-hunt-lab" device initiated and completed the installation of the TOR browser. They proceeded to launch the browser, establish connections within the TOR network, and created various files related to TOR on their desktop, including a file named `tor-shopping-list.txt`. This sequence of activities indicates that the user actively installed, configured, and used the TOR browser, likely for anonymous browsing purposes, with possible documentation in the form of the "shopping list" file.
-
----
-
-## Response Taken
-
-TOR usage was confirmed on the endpoint `threat-hunt-lab` by the user `employee`. The device was isolated, and the user's direct manager was notified.
-
-
-## Microsoft Sentinel: Real-Time Directory Login Failures Map
-
-### 📌 Project Functional Overview
-I deployed and configured a customized Microsoft Sentinel Workbook dashboard titled **Directory Login Failures** to establish real-time SIEM visualization over domain authentication traffic. In an enterprise or educational network infrastructure, perimeter defenses are subjected to constant automated credential attacks. This interactive dashboard maps failed authentication telemetry geographically, enabling security analysts to rapidly identify high-volume brute-force signatures and execute immediate incident response triage.
-
-<img width="959" height="566" alt="Screenshot 2026-05-26 at 6 42 09 PM" src="https://github.com/user-attachments/assets/544c5ebe-2cae-4a65-8847-0fd4d8a095ae" />
-
-### 🎯 Threat Hunting & Log Analysis
-The dashboard is mapped to simulated school district log ingestion, providing a high-fidelity correlation between standard operational noise and active threat vectors:
-
-* **Baseline Operational Activity:** The workbook isolates low-volume, localized authentication failures within **Bucks County, United States** (e.g., standard internal user `student.user` on device `HS-LAB-PC-04` generating expected false positives via simple credential devicetypos).
-* **High-Acuity Threat Vector (Brute-Force Detection):** The map dynamically flags an active, coordinated credential-stuffing signature originating from foreign IP spaces. Active indicators reveal **854 failed attempts** from **Beijing, China** targeting a `compromised.student` account, alongside **142 failed attempts** from **Moscow, Russia** utilizing an `unknown.account`.
-
-### 🛡️ Incident Response Playbook Execution
-This visual signature represents an active perimeter breach attempt and triggers immediate defensive mitigation:
-
-1. **Identity Isolation:** Enforces an immediate password reset and executes a global session revocation for the targeted account via Microsoft Entra ID to neutralize credential validity.
-2. **Perimeter Hardening:** Deploys strict Conditional Access geo-blocking policies to automatically drop inbound authentication requests originating outside domestic boundaries.
-3. **Network Layer Defense:** Extracts offending source IP addresses from the Sentinel log metadata to apply immediate drop rules across enterprise firewall tiers.
+| where AccountName == "student.user"
+| where ProcessCommandLine contains "tor-browser-windows-x86_64-portable-14.0.1.exe"
+| project Timestamp, DeviceName, AccountName, ActionType, FileName, FolderPath, SHA256, ProcessCommandLine
