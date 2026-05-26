@@ -163,11 +163,23 @@ The user "employee" on the "threat-hunt-lab" device initiated and completed the 
 
 TOR usage was confirmed on the endpoint `threat-hunt-lab` by the user `employee`. The device was isolated, and the user's direct manager was notified.
 
-## Microsoft Sentinel Monitoring Dashboard: Directory Login Failures
 
-### 📌 Overview
-To maintain continuous oversight of district access compliance, I deployed a customized Microsoft Sentinel Workbook dashboard titled **Directory Login Failures**. Because educational and enterprise networks are frequent targets for automated brute-force attacks originating from international IP space, this dashboard visually maps out failed authentication attempts geographically in real-time. This allows security analysts to immediately flag unauthorized access vectors and "impossible travel" scenarios outside regional boundaries.
+## Microsoft Sentinel: Real-Time Directory Login Failures Map
+
+### 📌 Project Functional Overview
+I deployed and configured a customized Microsoft Sentinel Workbook dashboard titled **Directory Login Failures** to establish real-time SIEM visualization over domain authentication traffic. In an enterprise or educational network infrastructure, perimeter defenses are subjected to constant automated credential attacks. This interactive dashboard maps failed authentication telemetry geographically, enabling security analysts to rapidly identify high-volume brute-force signatures and execute immediate incident response triage.
 
 <img width="959" height="566" alt="Screenshot 2026-05-26 at 6 42 09 PM" src="https://github.com/user-attachments/assets/544c5ebe-2cae-4a65-8847-0fd4d8a095ae" />
 
----
+### 🎯 Threat Hunting & Log Analysis
+The dashboard is mapped to simulated school district log ingestion, providing a high-fidelity correlation between standard operational noise and active threat vectors:
+
+* **Baseline Operational Activity:** The workbook isolates low-volume, localized authentication failures within **Bucks County, United States** (e.g., standard internal user `student.user` on device `HS-LAB-PC-04` generating expected false positives via simple credential typos).
+* **High-Acuity Threat Vector (Brute-Force Detection):** The map dynamically flags an active, coordinated credential-stuffing signature originating from foreign IP spaces. Active indicators reveal **854 failed attempts** from **Beijing, China** targeting a `compromised.student` account, alongside **142 failed attempts** from **Moscow, Russia** utilizing an `unknown.account`.
+
+### 🛡️ Incident Response Playbook Execution
+This visual signature represents an active perimeter breach attempt and triggers immediate defensive mitigation:
+
+1. **Identity Isolation:** Enforces an immediate password reset and executes a global session revocation for the targeted account via Microsoft Entra ID to neutralize credential validity.
+2. **Perimeter Hardening:** Deploys strict Conditional Access geo-blocking policies to automatically drop inbound authentication requests originating outside domestic boundaries.
+3. **Network Layer Defense:** Extracts offending source IP addresses from the Sentinel log metadata to apply immediate drop rules across enterprise firewall tiers.
