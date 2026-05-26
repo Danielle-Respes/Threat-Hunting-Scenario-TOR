@@ -1,6 +1,9 @@
-# Threat-Hunting-Scenario-TOR
+# Threat Hunt Report: Unauthorized TOR Usage 
+(School District Environment)
 
-<img width="400" src="https://github.com/user-attachments/assets/44bac428-01bb-4fe9-9d85-96cba7698bee" alt="Tor Logo with the onion and a crosshair on it"/>
+<img width="703" height="647" alt="Tor Kids" src="https://github.com/user-attachments/assets/073b5abf-c469-4081-9be6-aa32638c0a9c" />
+
+
 
 # Threat Hunt Report: Unauthorized TOR Usage
 - [Scenario Creation](https://github.com/Danielle-Respes/Threat-Hunting-Scenario-TOR/blob/main/Create%20threat-hunting-scenario-tor-event-creation.md) 
