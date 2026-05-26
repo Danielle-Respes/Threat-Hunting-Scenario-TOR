@@ -16,11 +16,10 @@
 - Kusto Query Language (KQL)
 - Tor Browser
 
-##  Scenario
+## Scenario
+The Technology Department identified unauthorized, encrypted web traffic anomalies bypassing standard network content filters. Internal investigations indicated that a student utilized a portable TOR browser on a high school computer lab endpoint to circumvent district network security controls and access restricted domains. 
 
-The Technology Department noticed anomalies in the district's web traffic logs, showing encrypted traffic bypassing our standard content filters. Anonymous reports suggested that a student on a high school computer lab device was using a portable TOR browser to bypass network security controls to access restricted sites. 
-
-The goal of this hunt is to detect unauthorized TOR installation and execution across the district's fleet, analyze the security incident, and ensure network compliance with student data safety policies. If any TOR usage is discovered, the IT Director and Building Administration must be notified.
+The goal of this hunt is to detect unauthorized TOR installation and execution across the enterprise fleet, analyze the security incident lifecycle, and ensure regulatory compliance with student data safety policies. If TOR deployment is confirmed, findings must be immediately escalated to the IT Director and Building Administration.
 
 ### High-Level TOR-Related IoC Discovery Plan
 
@@ -53,7 +52,7 @@ DeviceFileEvents
 
 ### 2. Searched the `DeviceProcessEvents` Table
 
-Searched for any `ProcessCommandLine` that contained the string "tor-browser-windows-x86_64-portable-14.0.1.exe". Based on the logs returned, at `2024-11-08T22:16:47.4484567Z`, an employee on the "threat-hunt-lab" device ran the file `tor-browser-windows-x86_64-portable-14.0.1.exe` from their Downloads folder, using a command that triggered a silent installation.
+Searched for any `ProcessCommandLine` that contained the string "tor-browser-windows-x86_64-portable-14.0.1.exe". Based on the logs returned, at `2024-11-08T22:16:47.4484567Z`, the student account (student.user) on the lab workstation (HS-LAB-PC-04) executed the installer, triggering a silent deployment installation.
 
 **Query used to locate event:**
 
@@ -70,7 +69,7 @@ DeviceProcessEvents
 
 ### 3. Searched the `DeviceProcessEvents` Table for TOR Browser Execution
 
-Searched for any indication that user "employee" actually opened the TOR browser. There was evidence that they did open it at `2024-11-08T22:17:21.6357935Z`. There were several other instances of `firefox.exe` (TOR) as well as `tor.exe` spawned afterwards.
+Searched for any indication that user "employee" actually opened the TOR browser. There was evidence that the student opened the browser at 2024-11-08T22:17:21.6357935Z. Subsequent process activity confirmed firefox.exe and tor.exe spawning, verifying successful execution..
 
 **Query used to locate events:**
 
@@ -87,7 +86,7 @@ DeviceProcessEvents
 
 ### 4. Searched the `DeviceNetworkEvents` Table for TOR Network Connections
 
-Searched for any indication the TOR browser was used to establish a connection using any of the known TOR ports. At `2024-11-08T22:18:01.1246358Z`, an employee on the "threat-hunt-lab" device successfully established a connection to the remote IP address `176.198.159.33` on port `9001`. The connection was initiated by the process `tor.exe`, located in the folder `c:\users\employee\desktop\tor browser\browser\torbrowser\tor\tor.exe`. There were a couple of other connections to sites over port `443`.
+Searched for any indication the TOR browser was used to establish a connection using any of the known TOR ports. At `2024-11-08T22:18:01.1246358Z`, the student account (student.user) successfully established a connection from the workstation (HS-LAB-PC-04) to remote IP 176.198.159.33 via port 9001, confirming active TOR connection to the remote IP address `176.198.159.33` on port `9001`. The connection was initiated by the process `tor.exe`, located in the folder `c:\users\employee\desktop\tor browser\browser\torbrowser\tor\tor.exe`. There were a couple of other connections to sites over port `443`.
 
 **Query used to locate events:**
 
@@ -174,7 +173,7 @@ I deployed and configured a customized Microsoft Sentinel Workbook dashboard tit
 ### 🎯 Threat Hunting & Log Analysis
 The dashboard is mapped to simulated school district log ingestion, providing a high-fidelity correlation between standard operational noise and active threat vectors:
 
-* **Baseline Operational Activity:** The workbook isolates low-volume, localized authentication failures within **Bucks County, United States** (e.g., standard internal user `student.user` on device `HS-LAB-PC-04` generating expected false positives via simple credential typos).
+* **Baseline Operational Activity:** The workbook isolates low-volume, localized authentication failures within **Bucks County, United States** (e.g., standard internal user `student.user` on device `HS-LAB-PC-04` generating expected false positives via simple credential devicetypos).
 * **High-Acuity Threat Vector (Brute-Force Detection):** The map dynamically flags an active, coordinated credential-stuffing signature originating from foreign IP spaces. Active indicators reveal **854 failed attempts** from **Beijing, China** targeting a `compromised.student` account, alongside **142 failed attempts** from **Moscow, Russia** utilizing an `unknown.account`.
 
 ### 🛡️ Incident Response Playbook Execution
