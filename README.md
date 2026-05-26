@@ -1,5 +1,6 @@
 # Threat Hunt Report: Unauthorized TOR Usage 
-(School District Environment)
+## **School District Environment**</p>
+
 
 <img width="703" height="647" alt="Tor Kids" src="https://github.com/user-attachments/assets/073b5abf-c469-4081-9be6-aa32638c0a9c" />
 
@@ -16,13 +17,15 @@
 
 ##  Scenario
 
-Management suspects that some employees may be using TOR browsers to bypass network security controls because recent network logs show unusual encrypted traffic patterns and connections to known TOR entry nodes. Additionally, there have been anonymous reports of employees discussing ways to access restricted sites during work hours. The goal is to detect any TOR usage and analyze related security incidents to mitigate potential risks. If any use of TOR is found, notify management.
+The Technology Department noticed anomalies in the district's web traffic logs, showing encrypted traffic bypassing our standard content filters. Anonymous reports suggested that a student on a high school computer lab device was using a portable TOR browser to bypass network security controls to access restricted sites. 
+
+The goal of this hunt is to detect unauthorized TOR installation and execution across the district's fleet, analyze the security incident, and ensure network compliance with student data safety policies. If any TOR usage is discovered, the IT Director and Building Administration must be notified.
 
 ### High-Level TOR-Related IoC Discovery Plan
 
-- **Check `DeviceFileEvents`** for any `tor(.exe)` or `firefox(.exe)` file events.
-- **Check `DeviceProcessEvents`** for any signs of installation or usage.
-- **Check `DeviceNetworkEvents`** for any signs of outgoing connections over known TOR ports.
+- **Check `DeviceFileEvents`** for any `tor(.exe)` or `firefox(.exe)` file downloads and creations.
+- **Check `DeviceProcessEvents`** for signs of the browser being installed or launched.
+- **Check `DeviceNetworkEvents`** for outgoing connections over known TOR communication ports.
 
 ---
 
