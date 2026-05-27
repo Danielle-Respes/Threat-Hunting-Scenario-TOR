@@ -166,61 +166,91 @@ The workbook includes a geographic map, a risk-level breakdown table with color-
 
 ---
 
-## Chronological Event Timeline 
+## Chronological Event Timeline
 
-### 1. File Download - TOR Installer
+### 1. File Download — TOR Installer
 
 - **Timestamp:** `2024-11-08T22:14:48.6065231Z`
-- **Event:** The user "employee" downloaded a file named `tor-browser-windows-x86_64-portable-14.0.1.exe` to the Downloads folder.
+- **Event:** Student `student01` downloaded a file named `tor-browser-windows-x86_64-portable-14.0.1.exe` to the Downloads folder.
 - **Action:** File download detected.
-- **File Path:** `C:\Users\employee\Downloads\tor-browser-windows-x86_64-portable-14.0.1.exe`
+- **File Path:** `C:\Users\student01\Downloads\tor-browser-windows-x86_64-portable-14.0.1.exe`
 
-### 2. Process Execution - TOR Browser Installation
+### 2. Process Execution — TOR Browser Installation
 
 - **Timestamp:** `2024-11-08T22:16:47.4484567Z`
-- **Event:** The user "employee" executed the file `tor-browser-windows-x86_64-portable-14.0.1.exe` in silent mode, initiating a background installation of the TOR Browser.
+- **Event:** Student `student01` executed the file `tor-browser-windows-x86_64-portable-14.0.1.exe` in silent mode, initiating a background installation of the TOR Browser with no visible prompts.
 - **Action:** Process creation detected.
 - **Command:** `tor-browser-windows-x86_64-portable-14.0.1.exe /S`
-- **File Path:** `C:\Users\employee\Downloads\tor-browser-windows-x86_64-portable-14.0.1.exe`
+- **File Path:** `C:\Users\student01\Downloads\tor-browser-windows-x86_64-portable-14.0.1.exe`
 
-### 3. Process Execution - TOR Browser Launch
+### 3. Process Execution — TOR Browser Launch
 
 - **Timestamp:** `2024-11-08T22:17:21.6357935Z`
-- **Event:** User "employee" opened the TOR browser. Subsequent processes associated with TOR browser, such as `firefox.exe` and `tor.exe`, were also created, indicating that the browser launched successfully.
+- **Event:** Student `student01` opened the TOR browser. Subsequent processes associated with TOR browser, including `firefox.exe` and `tor.exe`, were created indicating the browser launched successfully.
 - **Action:** Process creation of TOR browser-related executables detected.
-- **File Path:** `C:\Users\employee\Desktop\Tor Browser\Browser\TorBrowser\Tor\tor.exe`
+- **File Path:** `C:\Users\student01\Desktop\Tor Browser\Browser\TorBrowser\Tor\tor.exe`
 
-### 4. Network Connection - TOR Network
+### 4. Network Connection — TOR Network
 
 - **Timestamp:** `2024-11-08T22:18:01.1246358Z`
-- **Event:** A network connection to IP `176.198.159.33` on port `9001` by user "employee" was established using `tor.exe`, confirming TOR browser network activity.
+- **Event:** A network connection to IP `176.198.159.33` on port `9001` was established by `tor.exe`, confirming active TOR browser network activity.
 - **Action:** Connection success.
 - **Process:** `tor.exe`
-- **File Path:** `c:\users\employee\desktop\tor browser\browser\torbrowser\tor\tor.exe`
+- **File Path:** `C:\Users\student01\Desktop\Tor Browser\Browser\TorBrowser\Tor\tor.exe`
 
-### 5. Additional Network Connections - TOR Browser Activity
+### 5. Additional Network Connections — TOR Browser Activity
 
 - **Timestamps:**
-  - `2024-11-08T22:18:08Z` - Connected to `194.164.169.85` on port `443`.
-  - `2024-11-08T22:18:16Z` - Local connection to `127.0.0.1` on port `9150`.
-- **Event:** Additional TOR network connections were established, indicating ongoing activity by user "employee" through the TOR browser.
+  - `2024-11-08T22:18:08Z` — Connected to `194.164.169.85` on port `443`.
+  - `2024-11-08T22:18:16Z` — Local connection to `127.0.0.1` on port `9150`.
+- **Event:** Additional TOR network connections were established, confirming ongoing browsing activity through the TOR network.
 - **Action:** Multiple successful connections detected.
 
-### 6. File Creation - TOR Shopping List
+### 6. File Creation — Bypass Notes
 
 - **Timestamp:** `2024-11-08T22:27:19.7259964Z`
-- **Event:** The user "employee" created a file named `tor-shopping-list.txt` on the desktop, potentially indicating a list or notes related to their TOR browser activities.
+- **Event:** Student `student01` created a file named `bypass-sites.txt` on the Desktop, indicating a personal list of sites intended to be accessed via TOR.
 - **Action:** File creation detected.
-- **File Path:** `C:\Users\employee\Desktop\tor-shopping-list.txt`
+- **File Path:** `C:\Users\student01\Desktop\bypass-sites.txt`
 
 ---
 
 ## Summary
 
-The user "employee" on the "threat-hunt-lab" device initiated and completed the installation of the TOR browser. They proceeded to launch the browser, establish connections within the TOR network, and created various files related to TOR on their desktop, including a file named `tor-shopping-list.txt`. This sequence of activities indicates that the user actively installed, configured, and used the TOR browser, likely for anonymous browsing purposes, with possible documentation in the form of the "shopping list" file.
+Student `student01` on `district-student-laptop` downloaded, silently installed, launched, and actively used the TOR Browser during a school session. The full evidence chain is documented across MDE activity logs and surfaced through Microsoft Sentinel:
+
+1. File download confirmed — `DeviceFileEvents`
+2. Silent installation confirmed — `DeviceProcessEvents`
+3. Browser launch confirmed — `DeviceProcessEvents`
+4. Active TOR network connections confirmed — `DeviceNetworkEvents`
+5. Bypass notes file created — demonstrating intent
+6. Sentinel incident created, investigated, and closed as true positive
+7. Sentinel workbook built to visualize geographic login failure patterns
+
+This constitutes a clear violation of the district's Acceptable Use Policy (AUP) and circumvents CIPA-mandated content filtering.
 
 ---
 
 ## Response Taken
 
-TOR usage was confirmed on the endpoint `threat-hunt-lab` by the user `employee`. The device was isolated, and the user's direct manager was notified.
+1. Device isolated from the school network
+2. Incident documented in Sentinel with full query evidence and timestamps
+3. Building administrator notified per AUP enforcement procedures
+4. Student's parent/guardian notified per district policy
+5. IT ticket opened for device reimaging and AUP review
+
+---
+
+## What I Learned
+
+- How to use KQL to connect file, process, and network events into a complete incident story
+- How MDE and Sentinel work together — MDE collects the endpoint activity logs, Sentinel provides the hunting workspace, the alerting layer, and incident management on top of it
+- How to build a Sentinel analytics rule that turns a hunting query into a repeatable detection
+- How to build a Sentinel workbook that turns raw query results into a visual that communicates risk to both technical and non-technical audiences
+- How to build a structured detection hypothesis and support it with log evidence
+- How enterprise SOC methodology translates directly into a K-12 security environment
+
+---
+
+*Scenario simulated in a controlled Azure VM environment as part of a hands-on cybersecurity lab.*
+The detailed timeline is back with all six numbered entries, each with Timestamp, Event, Action, and File Path — all updated to student01 and the school district context. That section is what makes the README read like an actual incident report rather than just a lab writeup.
