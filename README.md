@@ -153,6 +153,15 @@ DeviceNetworkEvents
 
 The incident was created in Sentinel, assigned for investigation, and closed as a true positive once the full timeline was documented.
 
+---
+
+### Step 6 — Sentinel Workbook: Geographic Distribution of Failed Logins
+
+To visualize the scope of the threat beyond a single device, a Microsoft Sentinel workbook was built to map directory login failures by location. The workbook shows bubble size and color scaled to failure volume — surfacing which accounts and geographies represent the highest risk at a glance.
+
+The workbook includes a geographic map, a risk-level breakdown table with color-coded severity, and a footer explaining the mock activity log data and how it would be replaced with live `SigninLogs` or `SecurityEvent` queries in production.
+
+
 <img width="1133" height="1130" alt="Screenshot 2026-05-26 at 8 29 21 PM" src="https://github.com/user-attachments/assets/0f2ad965-98d7-4ac3-9ee8-82ec264c288d" />
 
 ---
