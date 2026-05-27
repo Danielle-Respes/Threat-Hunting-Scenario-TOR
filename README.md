@@ -13,6 +13,7 @@ This scenario uses Microsoft Defender for Endpoint (MDE) as the endpoint detecti
 
 
 # Threat Hunt Report: Unauthorized TOR Usage
+For the full step-by-step breakdown of how this threat scenario was built and simulated in the lab environment:
 - [Scenario Creation](https://github.com/Danielle-Respes/Threat-Hunting-Scenario-TOR/blob/main/Create%20threat-hunting-scenario-tor-event-creation.md) 
 
 ## Platforms and Tools Used
