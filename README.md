@@ -24,10 +24,18 @@ This scenario uses **Microsoft Defender for Endpoint (MDE)**, which we run in my
 * TOR Browser — the subject of the hunt
 * Microsoft Azure — where the lab environment lives
 
-## Scenario
-In my day-to-day work at the high school, I constantly see students trying to get around our content filters to access blocked sites. This project started as a fun way to build out the detection and analysis skills I need to actually catch this activity and keep our network secure. 
+## The Scenario
 
-I noticed a student account (`student.user`) was using a portable TOR browser on a high school computer lab endpoint to bypass our filters and hit restricted domains. The goal of this hunt is to detect unauthorized TOR installation and execution across our fleet, map out the incident, and ensure we're following student data safety policies. If I confirm TOR is being used, the plan is to escalate the findings to the IT Director and building admin for follow-up.
+A student on device `district-student-laptop` is attempting to bypass the school's content filter using TOR. Network logs show encrypted outbound traffic hitting known TOR entry nodes from the student subnet during class hours.
+
+MDE is collecting endpoint activity logs from the device. That data flows into Microsoft Sentinel, where it becomes searchable across the `DeviceFileEvents`, `DeviceProcessEvents`, and `DeviceNetworkEvents` tables. The hunt, the timeline, and the incident are all managed from the Sentinel workspace.
+
+**The goal:** Identify the device, confirm TOR usage across file, process, and network telemetry, build a complete evidence timeline, and respond per district policy.
+
+**Why this matters in a K-12 environment:**
+
+* CIPA Compliance — The Children's Internet Protection Act requires schools to enforce content filtering. TOR bypasses it entirely.
+* Student Safety — Unfiltered network access exposes students to content that schools are legally required to block.
 
 ### High-Level TOR-Related IoC Discovery Plan
 
