@@ -1,10 +1,15 @@
-# Threat Hunt Report: Unauthorized TOR Usage 
-## **School District Environment**</p>
+# 🕵️ Threat Hunt Report: Unauthorized TOR Usage 
+
+## **on a School District Network**</p>
 
 
 <img width="675" height="607" alt="Screenshot 2026-05-26 at 7 09 11 PM" src="https://github.com/user-attachments/assets/99a6a1f4-f3a8-4811-a8f4-e702a1d20b03" />
 
+## Context
 
+I work in IT for a K-12 school district. When a student device gets caught using TOR, we remove it from the network — that part I already do. What I wanted to build was the *detection and documentation* side: the queries, the evidence trail, the timeline. This lab gave me exactly that.
+
+This scenario uses **Microsoft Defender for Endpoint (MDE)**, which we run in my district, to hunt for, confirm, and document TOR usage on a student device end-to-end using KQL.
 
 
 # Threat Hunt Report: Unauthorized TOR Usage
