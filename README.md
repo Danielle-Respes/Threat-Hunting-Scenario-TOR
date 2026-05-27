@@ -1,4 +1,4 @@
-# 🕵️ Threat Hunt Report: Unauthorized TOR Usage 
+# Threat Hunt Report: Unauthorized TOR Usage 
 
 ## **on a School District Network**</p>
 
@@ -15,11 +15,14 @@ This scenario uses **Microsoft Defender for Endpoint (MDE)**, which we run in my
 # Threat Hunt Report: Unauthorized TOR Usage
 - [Scenario Creation](https://github.com/Danielle-Respes/Threat-Hunting-Scenario-TOR/blob/main/Create%20threat-hunting-scenario-tor-event-creation.md) 
 
-## Platforms and Languages Leveraged
-- Windows 10 Virtual Machines (Microsoft Azure)
-- EDR Platform: Microsoft Defender for Endpoint
-- Kusto Query Language (KQL)
-- Tor Browser
+## Platforms and Tools Used
+
+* Windows 11 Virtual Machine (simulating a school-issued student device)
+* Microsoft Defender for Endpoint (MDE) — endpoint telemetry and raw event collection
+* Microsoft Sentinel — SIEM used to ingest MDE logs, run hunting queries, and manage the incident
+* Kusto Query Language (KQL) — used across both MDE and Sentinel to query file, process, and network events
+* TOR Browser — the subject of the hunt
+* Microsoft Azure — where the lab environment lives
 
 ## Scenario
 In my day-to-day work at the high school, I constantly see students trying to get around our content filters to access blocked sites. This project started as a fun way to build out the detection and analysis skills I need to actually catch this activity and keep our network secure. 
