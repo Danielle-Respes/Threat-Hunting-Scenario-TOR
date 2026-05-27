@@ -7,9 +7,9 @@
 
 ## Context
 
-I work in IT for a K-12 school district. When a student device gets caught using TOR, we remove it from the network — that part I already do. What I wanted to build was the *detection and documentation* side: the queries, the evidence trail, the timeline. This lab gave me exactly that.
+I work in IT for a K-12 school district. When a student device gets caught using TOR, we remove it from the network — that part I already do. What I wanted to build was the detection and documentation side: the queries, the evidence trail, the timeline. This lab gave me exactly that.
 
-This scenario uses **Microsoft Defender for Endpoint (MDE)**, which we run in my district, to hunt for, confirm, and document TOR usage on a student device end-to-end using KQL.
+This scenario uses Microsoft Defender for Endpoint (MDE) as the endpoint detection source and Microsoft Sentinel as the SIEM where logs are ingested, hunted, and escalated into incidents. Both tools are part of my district's environment.
 
 
 # Threat Hunt Report: Unauthorized TOR Usage
@@ -30,92 +30,130 @@ A student on device `district-student-laptop` is attempting to bypass the school
 
 MDE is collecting endpoint activity logs from the device. That data flows into Microsoft Sentinel, where it becomes searchable across the `DeviceFileEvents`, `DeviceProcessEvents`, and `DeviceNetworkEvents` tables. The hunt, the timeline, and the incident are all managed from the Sentinel workspace.
 
-**The goal:** Identify the device, confirm TOR usage across file, process, and network telemetry, build a complete evidence timeline, and respond per district policy.
+**The goal:** Identify the device, confirm TOR usage across file, process, and network activity logs, build a complete evidence timeline, and respond per district policy.
 
 **Why this matters in a K-12 environment:**
 
-* CIPA Compliance — The Children's Internet Protection Act requires schools to enforce content filtering. TOR bypasses it entirely.
-* Student Safety — Unfiltered network access exposes students to content that schools are legally required to block.
+- CIPA Compliance — The Children's Internet Protection Act requires schools to enforce content filtering. TOR bypasses it entirely.
+- Student Safety — Unfiltered network access exposes students to content that schools are legally required to block.
 
-### High-Level TOR-Related IoC Discovery Plan
+### High-Level TOR Detection Plan
 
-- **Check `DeviceFileEvents`** for any `tor(.exe)` or `firefox(.exe)` file downloads and creations.
-- **Check `DeviceProcessEvents`** for signs of the browser being installed or launched.
-- **Check `DeviceNetworkEvents`** for outgoing connections over known TOR communication ports.
+- Check `DeviceFileEvents` — Did TOR-related files appear on the device?
+- Check `DeviceProcessEvents` — Was TOR installed and launched?
+- Check `DeviceNetworkEvents` — Did the device connect to known TOR ports or relay nodes?
+
+All queries were run in the Microsoft Sentinel hunting blade against the `law-cyber-range` Log Analytics workspace.
 
 ---
 
 ## Steps Taken
 
-### 1. Searched the `DeviceFileEvents` Table
+### Step 1 — Searched the DeviceFileEvents Table
 
-I searched for any file modifications containing the string "tor". The logs show that a student account (`student.user`) downloaded a portable TOR browser installer on the high school lab computer (`HS-LAB-PC-04`). This action resulted in several TOR-related files being copied to the desktop, alongside a file named `unblocked-games-list.txt` created on `2024-11-08T22:27:19.7259964Z`. These events started at `2024-11-08T22:14:48.6065231Z`.
+Searched for any file containing "tor" associated with the student account. Results showed a TOR installer landing in the Downloads folder, TOR browser files extracted to the Desktop, and a file named `bypass-sites.txt` created at `2024-11-08T22:27:19Z`. Activity began at `2024-11-08T22:14:48Z`.
 
-**Query used to locate events:**
+**Query used:**
 
 ```kql
 DeviceFileEvents
-| where DeviceName == "HS-LAB-PC-04"
-| where InitiatingProcessAccountName == "student.user"
+| where DeviceName == "district-student-laptop"
+| where InitiatingProcessAccountName == "student01"
 | where FileName contains "tor"
-| where Timestamp >= datetime(2024-11-08T22:14:48.6065231Z)
+| where Timestamp >= datetime(2024-11-08T22:14:48Z)
 | order by Timestamp desc
 | project Timestamp, DeviceName, ActionType, FileName, FolderPath, SHA256, Account = InitiatingProcessAccountName
 ```
-<img width="1212" alt="image" src="https://github.com/user-attachments/assets/71402e84-8767-44f8-908c-1805be31122d">
+
+**Result:** TOR installer downloaded, files extracted to Desktop, and a personal notes file created — all within the same session. This was deliberate.
+
+*[Screenshot — DeviceFileEvents results]*
 
 ---
 
-### 2. Searched the `DeviceProcessEvents` Table
+### Step 2 — Confirmed Installation via DeviceProcessEvents
 
-Searched for any `ProcessCommandLine` that contained the string "tor-browser-windows-x86_64-portable-14.0.1.exe". Based on the logs returned, at `2024-11-08T22:16:47.4484567Z`, an employee on the "threat-hunt-lab" device ran the file `tor-browser-windows-x86_64-portable-14.0.1.exe` from their Downloads folder, using a command that triggered a silent installation.
+Searched `ProcessCommandLine` for the TOR portable installer name. At `2024-11-08T22:16:47Z`, the device executed the installer with a `/S` flag — silent mode. No install wizard, no prompts. The student knew exactly what they were doing.
 
-**Query used to locate event:**
+**Query used:**
 
 ```kql
-
-DeviceProcessEvents  
-| where DeviceName == "threat-hunt-lab"  
-| where ProcessCommandLine contains "tor-browser-windows-x86_64-portable-14.0.1.exe"  
+DeviceProcessEvents
+| where DeviceName == "district-student-laptop"
+| where ProcessCommandLine contains "tor-browser-windows-x86_64-portable"
 | project Timestamp, DeviceName, AccountName, ActionType, FileName, FolderPath, SHA256, ProcessCommandLine
 ```
-<img width="1212" alt="image" src="https://github.com/user-attachments/assets/b07ac4b4-9cb3-4834-8fac-9f5f29709d78">
+
+**Result:** Silent installation confirmed via `/S` flag in the command line.
+
+*[Screenshot — DeviceProcessEvents installation results]*
 
 ---
 
-### 3. Searched the `DeviceProcessEvents` Table for TOR Browser Execution
+### Step 3 — Confirmed TOR Browser Execution
 
-Searched for any indication that user "employee" actually opened the TOR browser. There was evidence that they did open it at `2024-11-08T22:17:21.6357935Z`. There were several other instances of `firefox.exe` (TOR) as well as `tor.exe` spawned afterwards.
+Searched for `tor.exe` and `firefox.exe` process launches. At `2024-11-08T22:17:21Z`, `tor.exe` launched from the student's Desktop TOR folder with multiple child processes following — standard TOR startup behavior.
 
-**Query used to locate events:**
+**Query used:**
 
 ```kql
-DeviceProcessEvents  
-| where DeviceName == "threat-hunt-lab"  
-| where FileName has_any ("tor.exe", "firefox.exe", "tor-browser.exe")  
-| project Timestamp, DeviceName, AccountName, ActionType, FileName, FolderPath, SHA256, ProcessCommandLine  
+DeviceProcessEvents
+| where DeviceName == "district-student-laptop"
+| where FileName has_any ("tor.exe", "firefox.exe", "tor-browser.exe")
+| project Timestamp, DeviceName, AccountName, ActionType, FileName, FolderPath, SHA256, ProcessCommandLine
 | order by Timestamp desc
 ```
-<img width="1212" alt="image" src="https://github.com/user-attachments/assets/b13707ae-8c2d-4081-a381-2b521d3a0d8f">
+
+**Result:** `tor.exe` and `firefox.exe` both launched from the TOR Browser folder path, not the system Firefox install. Browser confirmed active.
+
+*[Screenshot — TOR process execution results]*
 
 ---
 
-### 4. Searched the `DeviceNetworkEvents` Table for TOR Network Connections
+### Step 4 — Confirmed TOR Network Connections via DeviceNetworkEvents
 
-Searched for any indication the TOR browser was used to establish a connection using any of the known TOR ports. At `2024-11-08T22:18:01.1246358Z`, an employee on the "threat-hunt-lab" device successfully established a connection to the remote IP address `176.198.159.33` on port `9001`. The connection was initiated by the process `tor.exe`, located in the folder `c:\users\employee\desktop\tor browser\browser\torbrowser\tor\tor.exe`. There were a couple of other connections to sites over port `443`.
+Searched for outbound connections from `tor.exe` and `firefox.exe` on known TOR ports. At `2024-11-08T22:18:01Z`, the device established a successful connection to `176.198.159.33` on port `9001` — a known TOR relay port. Additional connections followed within seconds.
 
-**Query used to locate events:**
+**Query used:**
 
 ```kql
-DeviceNetworkEvents  
-| where DeviceName == "threat-hunt-lab"  
-| where InitiatingProcessAccountName != "system"  
-| where InitiatingProcessFileName in ("tor.exe", "firefox.exe")  
-| where RemotePort in ("9001", "9030", "9040", "9050", "9051", "9150", "80", "443")  
-| project Timestamp, DeviceName, InitiatingProcessAccountName, ActionType, RemoteIP, RemotePort, RemoteUrl, InitiatingProcessFileName, InitiatingProcessFolderPath  
+DeviceNetworkEvents
+| where DeviceName == "district-student-laptop"
+| where InitiatingProcessAccountName != "system"
+| where InitiatingProcessFileName in ("tor.exe", "firefox.exe")
+| where RemotePort in ("9001", "9030", "9040", "9050", "9051", "9150", "80", "443")
+| project Timestamp, DeviceName, InitiatingProcessAccountName, ActionType, RemoteIP, RemotePort, RemoteUrl, InitiatingProcessFileName, InitiatingProcessFolderPath
 | order by Timestamp desc
 ```
-<img width="1212" alt="image" src="https://github.com/user-attachments/assets/87a02b5b-7d12-4f53-9255-f5e750d0e3cb">
+
+**Result:** Three confirmed TOR network connections, including a loopback on port `9150` confirming active traffic routing through the TOR network.
+
+*[Screenshot — DeviceNetworkEvents TOR connection results]*
+
+---
+
+### Step 5 — Escalated to Sentinel Incident
+With the evidence confirmed across all three tables, the findings were escalated into a Microsoft Sentinel incident using a scheduled analytics rule. The rule queries `DeviceNetworkEvents` for outbound TOR port activity and fires an alert when a match is found, which Sentinel then promotes to a tracked incident with severity, owner assignment, and audit trail.
+
+**Sentinel analytics rule query:**
+
+```kql
+DeviceNetworkEvents
+| where InitiatingProcessFileName in ("tor.exe", "firefox.exe")
+| where RemotePort in ("9001", "9030", "9040", "9050", "9051", "9150")
+| where ActionType == "ConnectionSuccess"
+| project Timestamp, DeviceName, InitiatingProcessAccountName, RemoteIP, RemotePort, InitiatingProcessFileName
+```
+
+**Rule configuration:**
+- Severity: Medium
+- Run frequency: Every 5 minutes
+- Lookup window: Last 5 minutes
+- Entity mapping: Host (DeviceName), Account (InitiatingProcessAccountName), IP (RemoteIP)
+
+The incident was created in Sentinel, assigned for investigation, and closed as a true positive once the full timeline was documented.
+
+<img width="1133" height="1130" alt="Screenshot 2026-05-26 at 8 29 21 PM" src="https://github.com/user-attachments/assets/0f2ad965-98d7-4ac3-9ee8-82ec264c288d" />
 
 ---
 
