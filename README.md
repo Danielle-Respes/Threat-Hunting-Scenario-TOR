@@ -11,6 +11,12 @@ I work in IT for a K-12 school district. When a student device gets caught using
 
 This scenario uses Microsoft Defender for Endpoint (MDE) as the endpoint detection source and Microsoft Sentinel as the SIEM where logs are ingested, hunted, and escalated into incidents. Both tools are part of my district's environment.
 
+## Architecture
+
+This diagram shows how data flows from student devices through MDE and into Sentinel, where the hunt, alerting, and incident management all happen.
+
+<img width="709" height="420" alt="Screenshot 2026-05-28 at 3 32 22 PM" src="https://github.com/user-attachments/assets/b105e7d0-acba-4599-ba8c-f13fee8803f4" />
+
 
 # Threat Hunt Report: Unauthorized TOR Usage
 For the full step-by-step breakdown of how this threat scenario was built and simulated in the lab environment:
