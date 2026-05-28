@@ -2,8 +2,12 @@
 
 ## **on a School District Network**</p>
 
-
 <img width="675" height="607" alt="Screenshot 2026-05-26 at 7 09 11 PM" src="https://github.com/user-attachments/assets/99a6a1f4-f3a8-4811-a8f4-e702a1d20b03" />
+
+
+
+For the full step-by-step breakdown of how this threat scenario was built and simulated in the lab environment:
+- [Scenario Creation](https://github.com/Danielle-Respes/Threat-Hunting-Scenario-TOR/blob/main/Create%20threat-hunting-scenario-tor-event-creation.md) 
 
 ## Context
 
@@ -17,10 +21,6 @@ This diagram shows how data flows from student devices through MDE and into Sent
 
 <img width="709" height="420" alt="Screenshot 2026-05-28 at 3 32 22 PM" src="https://github.com/user-attachments/assets/b105e7d0-acba-4599-ba8c-f13fee8803f4" />
 
-
-# Threat Hunt Report: Unauthorized TOR Usage
-For the full step-by-step breakdown of how this threat scenario was built and simulated in the lab environment:
-- [Scenario Creation](https://github.com/Danielle-Respes/Threat-Hunting-Scenario-TOR/blob/main/Create%20threat-hunting-scenario-tor-event-creation.md) 
 
 ## Platforms and Tools Used
 
