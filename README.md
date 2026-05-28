@@ -259,5 +259,3 @@ This constitutes a clear violation of the district's Acceptable Use Policy (AUP)
 
 ---
 
-*Scenario simulated in a controlled Azure VM environment as part of a hands-on cybersecurity lab.*
-The detailed timeline is back with all six numbered entries, each with Timestamp, Event, Action, and File Path — all updated to student01 and the school district context. That section is what makes the README read like an actual incident report rather than just a lab writeup.
